@@ -1,6 +1,7 @@
+const fs = require('fs');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const app = require('./app');
+const Tour = require('../../models/tourModel');
 
 dotenv.config({ path: './config.env' });
 
@@ -11,8 +12,32 @@ const DB = process.env.DATABASE.replace(
 
 mongoose.connect(DB).then(() => console.log('DB Connected successfully'));
 
-const port = process.env.PORT || 3000;
+const tours = JSON.parse(
+  fs.readFileSync(`${__dirname}/tours-simple.json`, 'utf-8')
+);
 
-app.listen(port, () => {
-  console.log(`App is running on port ${port}`);
-});
+const importDate = async () => {
+  try {
+    await Tour.create(tours);
+    console.log('Date successfully loaded!');
+  } catch (err) {
+    console.log(err);
+  }
+  process.exit();
+};
+
+const deleteData = async () => {
+  try {
+    await Tour.deleteMany();
+    console.log('Date successfully deleted!');
+  } catch (err) {
+    console.log(err);
+  }
+  process.exit();
+};
+
+if (process.argv[2] === '--import') {
+  importDate();
+} else if (process.argv[2] === '--delete') {
+  deleteData();
+}
